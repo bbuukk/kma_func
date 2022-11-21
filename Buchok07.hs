@@ -51,17 +51,19 @@ foo2 = [[3,4],[0,3],[0,1,4],[2,4],[1]]
 --             | not (isGraph gr) = []
 --             | otherwise = scanr (:.build) [] nds
 
--- build _ [] = []
--- build nds node = [] ++ build nds (if null (count nds node) then [] else node ++ (count nds node))
+build [] _ res = res
+build nds new_node res = continue nds g_new res
+    where g_new = foldl (\acc nd -> [ n | n <- nds!!nd, n `notElem` res, n `notElem` acc] ++ acc) [] new_node
 
-build [] node  = node
-build nds node = continue nds node (count nds node)
+continue _ [] res         = build [] [] res
+continue nds new_node res = build nds new_node (res++new_node)
 
-continue nds node new_node
-        | null new_node = build [] node
-        | otherwise     = build nds (node ++ new_node)
+-- build [] _ res = res
+-- build nds new_node res = continue nds g_new res
+--     where g_new = foldl (\acc nd -> [ n | n <- nds!!nd, n `notElem` res, n `notElem` acc] ++ acc) [] new_node
 
-count nds node = foldl (\acc nd -> [ n | n <- nds!!nd, n `notElem` node, n `notElem` acc] ++ acc) [] node
+-- continue _ [] res         = build [] [] res
+-- continue nds new_node res = build nds new_node (res++new_node)
 
 --todo Задача 5 ------------------------------------
 longWay :: Graph -> Int -> Int -> Maybe [Int] 
