@@ -81,14 +81,36 @@ foo ns c_n res
 
 
 --todo Задача 7 ------------------------------------
-isAcyclic :: Graph -> Bool 
-isAcyclic = undefined
+isAcyclic :: Graph -> Bool
+isAcyclic gr | not (isGraph gr) = False
+             | otherwise = check2 (buildTransitive gr)
+                where check2 t_gr = null[ t |idx <- idxs t_gr, let t = t_gr!!idx, idx `elem` t]
 
--- Задача 8 ------------------------------------
-topolSort :: Graph -> Maybe [Int] 
-topolSort = undefined
+--todo Задача 8 ------------------------------------
+-- topolSort :: Graph -> Maybe [Int] 
+-- topolSort gr | not (isGraph gr) || not (isAcyclic gr) = []
+--              | otherwise = 
 
--- Задача 9------------------------------------
+final_c gr = foldl (\acc pair -> ins acc pair) [0,1,2,3] (foo1 gr)
+
+foo1 gr = [ [idx, i_c_n] | idx <- idxs gr, let c_n = gr!!idx, i_c_n <- c_n]
+
+-- ins [] [n1,n2] = [n1,n2]
+ins e_l@(e:es) n_e@[n1,n2]
+    | n2 `notElem` e_l = b_ins (break (==n1) e_l) n_e
+    | otherwise        = n_ins (break (==n2) e_l) n_e
+    -- |n2<e = n1:e:es
+    -- |otherwise = e:ins es n_e 
+
+b_ins (p1, (p:p2)) [n1,n2]
+            | n1 == p   = p1 ++ p : p2
+            | otherwise = p1 ++ p : n2 : p2 
+
+n_ins (p1, (p:p2)) [n1,n2] =  p1 ++ p : n1 : p2
+            
+
+
+--todo Задача 9------------------------------------
 isTopolSort :: Graph -> [Int] -> Bool 
 isTopolSort = undefined
 
