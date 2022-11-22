@@ -69,27 +69,18 @@ result res fn_nd
         |otherwise = Just res
 
 --todo Задача 6 ------------------------------------
--- gamiltonWay :: Graph -> Maybe [Int]
--- gamiltonWay nds
---             | not (isGraph nds) = []
---             | otherwise = [ build1 nds (nds!!idx) [idx]| idx <- idxs nds] 
-
--- foo :: [[Int]] -> [Int] -> [Int] -> [Int]
--- foo ns c_n res = head (filter (is_cycle) [ foo ns (ns!!n) (res++[n])| n <- c_n])
+gamiltonWay :: Graph -> Maybe [Int]
+gamiltonWay nds
+            | not (isGraph nds) = Nothing
+            | otherwise = Just (head ([ foo nds (nds!!idx) [idx]| idx <- idxs nds] ))
 
 foo ns c_n res
         | is_cycle res = res
-        | otherwise = head1 (filter (is_cycle) [ foo ns (ns!!n) (res++[n])| n <- c_n])
+        | length res > ((length ns) + 1) = []
+        | otherwise = head1 (filter (is_cycle) (filter (\cls -> length cls == ((length ns) + 1)) [ foo ns (ns!!n) (res++[n])| n <- reverse c_n]))
 
-foo1:: Graph
-foo1 = [[1],[2,3],[3],[0]]
 
-head1 [] = []
-head1 as = head as
--- gr2 = [[3,4],[0,3],[0,1,4],[2,4],[1]]
-
--- filter (is_cycle)
--- Задача 7 ------------------------------------
+--todo Задача 7 ------------------------------------
 isAcyclic :: Graph -> Bool 
 isAcyclic = undefined
 
@@ -130,3 +121,6 @@ make_unique (x:xs) = x : make_unique (filter(/= x) xs)
 
 idxs :: Graph -> [Int]
 idxs g = [0..(length g - 1)]
+
+head1 [] = []
+head1 as = head as
