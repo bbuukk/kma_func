@@ -54,26 +54,41 @@ continue _ [] res         = build [] [] res
 continue nds new_node res = build nds new_node (foldl (sort_insert) res new_node)
 
 --todo Задача 5 ------------------------------------
--- longWay :: Graph -> Int -> Int -> Maybe [Int] 
--- longWay gr st_nd fn_nd 
---     | not (isGraph gr) = Nothing
---     | otherwise = foo gr st_nd fn_nd
+longWay :: Graph -> Int -> Int -> Maybe [Int] 
+longWay gr st_n fn_n
+    | not (isGraph gr) = Nothing
+    | otherwise = result (st_n : check1 gr (gr!!st_n) fn_n) fn_n
 
---tod check if current node has fn_n
--- foo gr st_n fn_n = [ st_n : next : check1 gr next fn_n | next <- gr!!st_n]
--- check1 gr cr_n fn_n = longest [ if next == fn_n then [next] else next : (check1 gr next fn_n) | next <- gr!!cr_n]
+check1 gr cr_n fn_n = longest
+     [if next == fn_n
+         then [next]
+         else next : (check1 gr (gr!!next) fn_n) | next <- cr_n]
 
-foo gr st_n fn_n = st_n : check1 gr (gr!!st_n) fn_n 
-check1 gr cr_n fn_n = longest [ if next == fn_n then [next] else next : (check1 gr (gr!!next) fn_n) | next <- cr_n]
--- gr3 = [[1],[2],[3],[1],[0,3]]
--- gr4 = [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[0,1,2,3]]
+result res fn_nd
+        | last res /= fn_nd = Nothing
+        |otherwise = Just res
 
-longest = maximumBy (comparing length)
+--todo Задача 6 ------------------------------------
+-- gamiltonWay :: Graph -> Maybe [Int]
+-- gamiltonWay nds
+--             | not (isGraph nds) = []
+--             | otherwise = [ build1 nds (nds!!idx) [idx]| idx <- idxs nds] 
 
--- Задача 6 ------------------------------------
-gamiltonWay :: Graph -> Maybe [Int]
-gamiltonWay = undefined
+-- foo :: [[Int]] -> [Int] -> [Int] -> [Int]
+-- foo ns c_n res = head (filter (is_cycle) [ foo ns (ns!!n) (res++[n])| n <- c_n])
 
+foo ns c_n res
+        | is_cycle res = res
+        | otherwise = head1 (filter (is_cycle) [ foo ns (ns!!n) (res++[n])| n <- c_n])
+
+foo1:: Graph
+foo1 = [[1],[2,3],[3],[0]]
+
+head1 [] = []
+head1 as = head as
+-- gr2 = [[3,4],[0,3],[0,1,4],[2,4],[1]]
+
+-- filter (is_cycle)
 -- Задача 7 ------------------------------------
 isAcyclic :: Graph -> Bool 
 isAcyclic = undefined
@@ -95,29 +110,23 @@ gr3 = [[1],[2],[3],[1],[0,3]]
 gr4 = [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[0,1,2,3]]
 
 ---------------------Допоміжні функції ----------
+longest [] = []
+longest as = maximumBy (comparing length) as
+
+is_cycle [] = False
+is_cycle (a1:[]) = False
+is_cycle (a1:as) = a1 == last as
 
 
--- insert :: [Integer] -> Integer -> [Integer]
+sort_insert :: (Ord a, Eq a) => [a] -> a -> [a]
 sort_insert [] b = [b]
 sort_insert (a:as) b
     |b<a = b:a:as
-    |otherwise = a:sort_insert as b
+    |otherwise = a:sort_insert as b         
 
--- sortInsert :: [Integer] -> [Integer]
--- sortInsert as = foldl insert [] as 
---     where
-         
+make_unique :: (Ord a, Eq a) => [a] -> [a]
+make_unique [] = []
+make_unique (x:xs) = x : make_unique (filter(/= x) xs)
 
-set :: [Int] -> [Int]
-set [] = []
-set (x:xs) = x : set (filter(/= x) xs)
-
--- sortInsert :: [Int] -> [Int]
--- sortInsert [] = []
--- sortInsert [x] = [x]
--- sortInsert (x:xs) = insert (sortInsert xs) x
---           where insert :: [Int] -> Int -> [Int]
---                 insert [] n = [n]
---                 insert ys n | n > head ys = head ys : insert (tail ys) n
---                             | otherwise = n : ys
-     
+idxs :: Graph -> [Int]
+idxs g = [0..(length g - 1)]
