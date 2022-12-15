@@ -83,38 +83,51 @@ foo ns c_n res
 --todo Задача 7 ------------------------------------
 isAcyclic :: Graph -> Bool
 isAcyclic gr | not (isGraph gr) = False
-             | otherwise = check2 (buildTransitive gr)
+             | True = check2 (buildTransitive gr)
                 where check2 t_gr = null[ t |idx <- idxs t_gr, let t = t_gr!!idx, idx `elem` t]
 
 --todo Задача 8 ------------------------------------
--- topolSort :: Graph -> Maybe [Int] 
--- topolSort gr | not (isGraph gr) || not (isAcyclic gr) = []
---              | otherwise = 
+topolSort :: Graph -> Maybe [Int]
+topolSort gr | not (isGraph gr) || not (isAcyclic gr) = Nothing
+             | True = Just (help_tpl_sort gr (filter (\vert -> is_zero_in gr vert (nodes gr))
+                                             (nodes gr)))
 
-final_c gr = foldl (\acc pair -> ins acc pair) [0,1,2,3] (foo1 gr)
+help_tpl_sort gr stack
+             | length gr <= length stack = stack
+             | True  = help_tpl_sort (repl_at gr [] (find_c_v gr))
+                                     (set (stack ++ find_c_v gr))
 
-foo1 gr = [ [idx, i_c_n] | idx <- idxs gr, let c_n = gr!!idx, i_c_n <- c_n]
+is_zero_in :: Graph -> Int -> [Int] -> Bool
+is_zero_in gr v vs 
+            | null vs = True
+            | edge_in gr (head vs, v) = False
+            | True = is_zero_in gr v (tail vs)
 
--- ins [] [n1,n2] = [n1,n2]
-ins e_l@(e:es) n_e@[n1,n2]
-    | n2 `notElem` e_l = b_ins (break (==n1) e_l) n_e
-    | otherwise        = n_ins (break (==n2) e_l) n_e
-    -- |n2<e = n1:e:es
-    -- |otherwise = e:ins es n_e 
-
-b_ins (p1, (p:p2)) [n1,n2]
-            | n1 == p   = p1 ++ p : p2
-            | otherwise = p1 ++ p : n2 : p2 
-
-n_ins (p1, (p:p2)) [n1,n2] =  p1 ++ p : n1 : p2
-            
-
+find_c_v :: Graph -> [Int]
+find_c_v gr = filter (\vert -> is_zero_in gr vert (nodes gr))
+                     (nodes gr)
 
 --todo Задача 9------------------------------------
-isTopolSort :: Graph -> [Int] -> Bool 
-isTopolSort = undefined
+isTopolSort :: Graph -> [Int] -> Bool
+isTopolSort [] _ = False
+isTopolSort _ [] = False
+isTopolSort nds tpl | not (isGraph nds) || not (isAcyclic nds) = False
+                     | length nds /= length tpl = False
+                     | not (is_set tpl)         = False
+                     | True                     = check_is_sorted nds tpl
 
----------------------Тестові дані - Графи -------
+check_is_sorted [[]] [x] = x == 0
+check_is_sorted nds tpl
+     | null tpl = True
+     | check_edges nds (head tpl) (tail tpl) = check_is_sorted nds (tail tpl)
+     | True     = False
+
+check_edges nds v tpl | null tpl              = True
+                         | edge_in nds
+                             (head tpl, v)    = False
+                         | otherwise          = check_edges nds v (tail tpl)
+
+---------------------todo Тестові дані - Графи -------
 
 gr1, gr2, gr3, gr4:: Graph
 gr1 = [[1,2,3],[2,3],[3,4],[4],[]]
@@ -122,14 +135,13 @@ gr2 = [[3,4],[0,3],[0,1,4],[2,4],[1]]
 gr3 = [[1],[2],[3],[1],[0,3]]
 gr4 = [[1,2,3],[1,2,3],[1,2,3],[1,2,3],[0,1,2,3]]
 
----------------------Допоміжні функції ----------
+---------------------todo Допоміжні функції ----------
 longest [] = []
 longest as = maximumBy (comparing length) as
 
 is_cycle [] = False
 is_cycle (a1:[]) = False
 is_cycle (a1:as) = a1 == last as
-
 
 sort_insert :: (Ord a, Eq a) => [a] -> a -> [a]
 sort_insert [] b = [b]
@@ -146,3 +158,32 @@ idxs g = [0..(length g - 1)]
 
 head1 [] = []
 head1 as = head as
+
+set :: [Int] -> [Int]
+set [] = []
+set (x:xs) = x : set (filter(/= x) xs)
+
+edge_in :: Graph -> (Int, Int) -> Bool
+edge_in g (x,y) = y `elem` (g!!x)
+
+nodes :: Graph -> [Int]
+nodes g = [0..(length g - 1)]
+
+is_set :: [Int] -> Bool
+is_set [] = True
+is_set [_] = True
+is_set (x:xs) = notElem x xs && is_set xs
+
+repl_elem_at :: Int -> a -> [a] -> [a]
+repl_elem_at pos newElem ls | pos >= length ls = error "Index over bound"
+                                | otherwise = help pos newElem ls 0
+                                where help :: Int -> a -> [a] -> Int -> [a]
+                                      help _ _ [] _ = []
+                                      help position element (x:xs) counter | counter == position = element : xs
+                                                                                  | otherwise = x : help position element xs (counter + 1)                                                   
+
+repl_at :: Graph -> [Int] -> [Int] -> Graph
+repl_at nds _ [] = nds
+repl_at nds n_e ps 
+            | null ps = nds
+            | otherwise = repl_at (repl_elem_at (head ps) n_e nds) n_e (tail ps)
